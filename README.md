@@ -11,8 +11,8 @@ Here are the steps to perform this project:
 
 * Process Data: Converts the query result into an Excel file using Pandas and saves it to a temporary location.
 
-* Upload to Cloud Storage: Uploads the generated Excel file to a specified Google Cloud Storage bucket.
-
+* Upload to Cloud Storage: Uploads a daily-updated Excel file to Google Cloud Storage and sends an email with the updated file upon function trigger.
+  
 * Email Setup: Prepares an email with HTML content to inform recipients about SKUs with missing descriptions.
 
 * Send Email: Sends the email to a list of recipients using Gmail’s SMTP server.
