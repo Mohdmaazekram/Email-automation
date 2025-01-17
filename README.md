@@ -17,7 +17,7 @@ Here are the steps to perform this project:
 
 * Send Email: Sends the email to a list of recipients using Gmail’s SMTP server.
 
-* Error Handling: Includes error handling for both the main process and the email sending step, printing error messages if something goes wrong.\n
+* Error Handling: Includes error handling for both the main process and the email sending step, printing error messages if something goes wrong. \n
 
 ---
 
