@@ -54,40 +54,32 @@ Below is a sample Python code to send automated emails:
 
 Python
 
-# Import necessary libraries for sending email
-from email.mime.text import MIMEText
+from email.mime.text import MIMEText  # Import necessary libraries for sending email
 from email.mime.multipart import MIMEMultipart
 import smtplib
 
-# Email subject
-subject = 'Caratlane Scraping'
+subject = 'Caratlane Scraping'  # Email subject
 
-# Sender email address and app password (use the app password you generated)
-sender_email = 'your-email@gmail.com'
+sender_email = 'your-email@gmail.com'   # Sender email address and app password (use the app password you generated)
 app_password = 'your-app-password'  # App password generated from Google account
 
-# List of recipients' email addresses
-recipients = ['recipient1@example.com', 'recipient2@example.com']  # Replace with actual recipient emails
+recipients = ['recipient1@example.com', 'recipient2@example.com']  # List of recipients' email addresses # Replace with actual recipient emails 
 
-# Create a MIMEMultipart message object (used to create the email with multiple parts like text, attachments)
-msg = MIMEMultipart()
+msg = MIMEMultipart()   # Create a MIMEMultipart message object (used to create the email with multiple parts like text, attachments)
 
-# Set the 'Subject' and 'From' fields of the email
-msg['Subject'] = subject
+msg['Subject'] = subject    # Set the 'Subject' and 'From' fields of the email
 msg['From'] = sender_email
 
-# HTML content for the email body
-html_content = """
+html_content = """   
     <html>
-    <h4> This is your message content! </h4>
+    <h4> This is your message content! </h4>                 # HTML content for the email body
     </html>
 """
-# Convert the HTML content into a MIMEText object and attach it to the message
-part1 = MIMEText(html_content, 'html')  # 'html' specifies that the content is HTML
+
+part1 = MIMEText(html_content, 'html')  # 'html' specifies that the content is HTML                # Convert the HTML content into a MIMEText object and attach it to the message
 msg.attach(part1)  # Attach the HTML part to the email message
 
-# Now, to send the email
-try:
+try:                                                                          # Now, to send the email
     # Connect to Gmail's SMTP server on port 587 (TLS-enabled server)
     server = smtplib.SMTP('smtp.gmail.com', 587)
     server.ehlo()  # Sends a command to the server to identify the client
