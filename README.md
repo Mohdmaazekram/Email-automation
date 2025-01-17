@@ -19,8 +19,7 @@ Here are the steps to perform this project:
 
 * Error Handling: Includes error handling for both the main process and the email sending step, printing error messages if something goes wrong.
 
-\n
-
+---
 
 **Steps to Send Automatic Emails Using Python**
 
