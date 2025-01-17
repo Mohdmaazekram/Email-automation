@@ -51,52 +51,7 @@ Here are the steps to perform this project:
 **3. Create Python Code to Send Automatic Emails:**
 
 Below is a sample Python code to send automated emails:
-
-Python
-
-from email.mime.text import MIMEText  # Import necessary libraries for sending email
-from email.mime.multipart import MIMEMultipart
-import smtplib
-
-subject = 'Caratlane Scraping'  # Email subject
-
-sender_email = 'your-email@gmail.com'   # Sender email address and app password (use the app password you generated)
-app_password = 'your-app-password'  # App password generated from Google account
-
-recipients = ['recipient1@example.com', 'recipient2@example.com']  # List of recipients' email addresses # Replace with actual recipient emails 
-
-msg = MIMEMultipart()   # Create a MIMEMultipart message object (used to create the email with multiple parts like text, attachments)
-
-msg['Subject'] = subject    # Set the 'Subject' and 'From' fields of the email
-msg['From'] = sender_email
-
-html_content = """   
-    <html>
-    <h4> This is your message content! </h4>                 # HTML content for the email body
-    </html>
-"""
-
-part1 = MIMEText(html_content, 'html')  # 'html' specifies that the content is HTML                # Convert the HTML content into a MIMEText object and attach it to the message
-msg.attach(part1)  # Attach the HTML part to the email message
-
-try:                                                                          # Now, to send the email
-    # Connect to Gmail's SMTP server on port 587 (TLS-enabled server)
-    server = smtplib.SMTP('smtp.gmail.com', 587)
-    server.ehlo()  # Sends a command to the server to identify the client
-    server.starttls()  # Starts a secure TLS connection to encrypt the email data
-    server.ehlo()  # Send another EHLO command after starting TLS for the handshake
-
-    # Log in to the email account using the email and app password
-    server.login(sender_email, app_password)
-
-    # Send the email from the sender to the list of recipients
-    server.sendmail(msg['From'], recipients, msg.as_string())  # Converts the email object to string for sending
-    server.close()  # Close the connection to the SMTP server
-
-    print("Email sent successfully!")  # Print a success message when the email is sent
-except Exception as e:
-    # If any error occurs, print the error message
-    print(f"Error: {e}")
+Please Find Example code from the Above Email Code File.
     
 **Explanation of the Code:**
 
