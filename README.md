@@ -21,7 +21,7 @@ Here are the steps to perform this project:
 
 ---
 
-**Steps to Send Automatic Emails Using Python**
+<br><br>**Steps to Send Automatic Emails Using Python**
 
 **1. Enable IMAP Access in Gmail:**
 
