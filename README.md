@@ -2,7 +2,7 @@
 
 To develop a Python script that automatically generates and sends a weekly email report to the relevant department, detailing the count of products with missing or null descriptions in the website. This automation aims to streamline communication and ensure timely updates, facilitating better data management and departmental coordination.
 
-Here are the steps to perform this project:
+**Here are the steps to perform this project:**
 
 * **Imports Libraries:** The function imports various Python libraries for handling data, emails, Google Cloud storage, and BigQuery.
 
