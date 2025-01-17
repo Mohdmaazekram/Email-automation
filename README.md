@@ -49,8 +49,8 @@ Here are the steps to perform this project:
 
 **3. Create Python Code to Send Automatic Emails:**
 
-Below is a sample Python code to send automated emails:
-Please Find Example code from the Above Email Code File.
+Below is a sample Python code to send automated emails:<br>
+Please Find Example code from the Above **Email Code File.**
     
 **Explanation of the Code:**
 
