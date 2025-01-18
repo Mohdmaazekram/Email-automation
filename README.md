@@ -51,7 +51,7 @@ To develop a Python script that automatically generates and sends a weekly email
 **3. Create Python Code to Send Automatic Emails:**
 
 Below is a sample Python code to send automated emails:<br>
-Please Find Example code from the Above **Email Code File.**
+Please Find Example code from the Above **Email Code .txt File.**
     
 **Explanation of the Code:**
 
