@@ -1,3 +1,5 @@
+# Sending different data to different people at the same time With help of Email Automation.
+
 from oauth2client.service_account import ServiceAccountCredentials
 from glob import glob
 from bs4 import BeautifulSoup
