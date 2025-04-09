@@ -1,6 +1,6 @@
 # Automated Weekly Email Report for Product Descriptions
 
-**Project Summary:** Automated Weekly Email Report for Product Data.
+**Project Summary :** Automated Weekly Email Report for Product Data.
 
 The goal of this project is to develop a Python script that automatically generates and sends a weekly email report to the relevant department. This report will detail important product data, ensuring the department stays updated on key metrics and trends.
 
