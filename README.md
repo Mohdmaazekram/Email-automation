@@ -1,4 +1,4 @@
-# Automated Weekly Email Report for Product Descriptions
+# Automated Weekly Email Report for Product Data
 
 **Project Summary :** Automated Weekly Email Report for Product Data.
 
