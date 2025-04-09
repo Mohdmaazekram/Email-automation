@@ -4,7 +4,7 @@
 
 The goal of this project is to develop a Python script that automatically generates and sends a weekly email report to the relevant department. This report will detail important product data, ensuring the department stays updated on key metrics and trends.
 
-The main objectives of this automation are:
+**The main objectives of this automation are :**
 
 * **Automated Report Generation :** The Python script will extract and compile product data into a structured report, saving time and reducing manual effort.
 
