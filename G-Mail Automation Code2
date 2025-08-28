@@ -1,0 +1,367 @@
+def hello_pubsub(event, context): 
+    try:
+
+        import base64
+        import tempfile
+        import pandas as pd
+        import numpy as np
+        import pandas_gbq as pg
+
+        import datetime as dt
+        from time import sleep
+        import time
+
+        from datetime import date, timedelta
+
+        import smtplib
+        from email.mime.text import MIMEText
+        from email.mime.application import MIMEApplication
+        from email.mime.multipart import MIMEMultipart
+        from google.cloud import storage
+        from smtplib import SMTP
+
+        import requests
+        import io
+        import json
+
+
+        #======================  DataFrame 1 = query ============================#
+
+
+        query =   """
+                SELECT
+        *
+        FROM (
+        SELECT
+        Business_Head,
+        Store_Name,
+        SUM(Synergics_Store_Name) AS Total_Walkin,
+        SUM(invoiceNumber) AS Total_Conversion
+        FROM (
+        SELECT
+        Business_Head,
+        Synergics_Store_Name AS Store_Name,
+        COUNT(Synergics_Store_Name) Synergics_Store_Name,
+        COUNT(invoiceNumber) invoiceNumber
+        FROM (
+        SELECT
+        *
+        FROM
+        `daton-candere.mis_team_view.StoreWalkins_Data`)
+        WHERE
+        start_date = CURRENT_DATE()-1
+        GROUP BY
+        ALL)
+        GROUP BY
+        ALL
+        UNION ALL
+        SELECT
+        Business_Head,
+        Synergics_Store_Name,
+        0 AS col1,
+        0 AS col2,
+        FROM
+        `daton-candere.mis_team_view.Magento_Synergics_StoreName_Table`
+        WHERE
+        Synergics_Store_Name NOT IN (
+        SELECT
+        Store_Name
+        FROM (
+        SELECT
+        Synergics_Store_Name AS Store_Name,
+        COUNT(Synergics_Store_Name) Synergics_Store_Name,
+        COUNT(invoiceNumber) invoiceNumber
+        FROM (
+        SELECT
+          *
+        FROM
+          `daton-candere.mis_team_view.StoreWalkins_Data`)
+        WHERE
+        start_date = CURRENT_DATE()-1
+        GROUP BY
+        ALL)
+        WHERE
+        Store_Name IS NOT NULL
+        GROUP BY
+        ALL)) Form_Data
+        WHERE
+        Business_Head IS NOT NULL
+        ORDER BY
+        Business_Head ASC
+                """
+
+        df_discription = pg.read_gbq(query)
+        df_discription = pd.DataFrame(df_discription)
+        df_discription.sort_values(by=['Business_Head', 'Total_Walkin'], ascending=[True, False], inplace=True)
+        df_discription = df_discription.rename(columns={'Store_Name': 'STORE NAME','Total_Walkin':'TOTAL WALK-IN',
+                                                        'Total_Conversion':'TOTAL CONVERSION',
+                                                        'Business_Head':'BUSINESS HEAD'
+                                                        # 'Synergic_Order':'TOTAL SYNERGIC ORDER'
+                                                        })
+
+        # df_discription = df_discription.reset_index(drop=True, inplace=True)
+        # df_discription = df_discription.sort_values(['Total_Walkin'],ascending=False)
+
+
+        #======================  DataFrame 2 = query1 ============================#
+
+
+        query1 = """
+                SELECT
+        "" AS Business_Head,
+        "Total" AS Store_Name,
+        SUM(Total_Walkin) AS Total_Walkin,
+        SUM(Total_Conversion) AS Total_Conversion
+        FROM (
+        SELECT
+        Business_Head,
+        Store_Name,
+        SUM(Synergics_Store_Name) AS Total_Walkin,
+        SUM(invoiceNumber) AS Total_Conversion
+        FROM (
+        SELECT
+        Business_Head,
+        Synergics_Store_Name AS Store_Name,
+        COUNT(Synergics_Store_Name) Synergics_Store_Name,
+        COUNT(invoiceNumber) invoiceNumber
+        FROM (
+        SELECT
+        *
+        FROM
+        `daton-candere.mis_team_view.StoreWalkins_Data`)
+        WHERE
+        start_date = CURRENT_DATE()-1
+        GROUP BY
+        ALL)
+        GROUP BY
+        ALL
+        UNION ALL
+        SELECT
+        Business_Head,
+        Synergics_Store_Name,
+        0 AS col1,
+        0 AS col2,
+        FROM
+        `daton-candere.mis_team_view.Magento_Synergics_StoreName_Table`
+        WHERE
+        Synergics_Store_Name NOT IN (
+        SELECT
+        Store_Name
+        FROM (
+        SELECT
+        Synergics_Store_Name AS Store_Name,
+        COUNT(Synergics_Store_Name) Synergics_Store_Name,
+        COUNT(invoiceNumber) invoiceNumber
+        FROM (
+        SELECT
+          *
+        FROM
+          `daton-candere.mis_team_view.StoreWalkins_Data`)
+        WHERE
+        start_date = CURRENT_DATE()-1
+        GROUP BY
+        ALL)
+        WHERE
+        Store_Name IS NOT NULL
+        GROUP BY
+        ALL)) Form_Data
+        WHERE
+        Business_Head IS NOT NULL
+        ORDER BY
+        Business_Head ASC
+                    """
+
+        df_discriptionn = pg.read_gbq(query1)
+        df_discriptionn = pd.DataFrame(df_discriptionn)
+        df_discriptionn = df_discriptionn.rename(columns={'Store_Name': 'STORE NAME','Total_Walkin':'TOTAL WALK-IN',
+                                                        'Total_Conversion':'TOTAL CONVERSION',
+                                                        'Business_Head':'BUSINESS HEAD'
+                                                        # 'Synergic_Order':'TOTAL SYNERGIC ORDER'
+                                                        })
+
+
+        Final_df = pd.concat([df_discription,df_discriptionn])
+
+        index = pd.MultiIndex.from_arrays([
+            Final_df['BUSINESS HEAD'],
+            Final_df['STORE NAME']
+        ], names=['BUSINESS HEAD', 'STORE NAME'])
+
+        Final_df.index = index
+        Final_df = Final_df.iloc[:,2:]
+        # Final_df.reset_index(drop=True, inplace=True)
+
+        #======================  Email Automation Code  ============================#
+
+
+        today = date.today()
+        yesterday = today - timedelta(days = 1)
+        yesterday = yesterday.strftime("%B %d, %Y")
+
+        sub = 'Store Walk-in & Conversion Report - Candere Stores ' + str(yesterday)
+
+        username = 'data.integration@candere.com'
+        password = 'etys lnma adyi zacu'
+
+        sender_email = 'maaz.ekram@candere.com'
+
+
+        # recipients 
+        to_emails = ["bh-announcement@kalyanjewellers.net","rm-announcement@kalyanjewellers.net"]
+        cc_emails = ["kamal@kalyanjewellers.net","sujai.sukumar@candere.com","sanjay.raghuraman@kalyanjewellers.net","paedm@kalyanjewellers.net","vivek@kalyanjewellers.net","omnichannel@candere.com","data@candere.com"]
+        bcc_emails = ["data@candere.com"]
+        recipients = to_emails + bcc_emails + cc_emails 
+
+        emaillist = [elem.strip().split(',') for elem in recipients]
+        msg = MIMEMultipart()
+        msg['Subject'] = sub
+        msg['From'] = 'data.integration@candere.com'
+        msg['To'] = ", ".join(to_emails)
+        msg['Reply-To'] = 'omnichannel@candere.com'
+        msg['Cc'] = ", ".join(cc_emails)
+
+
+        html_part1 = """<html><h4>Dear BH's,</h4><h4>Greetings!</h4></html>"""
+        msg.attach(MIMEText(html_part1, 'html'))
+
+        Final_df = Final_df.astype(str)
+
+        html_table = '<table>'
+
+        # Table headers
+        html_table += '<thead><tr><th>BUSINESS HEAD</th><th>STORE NAME</th><th>TOTAL WALK-IN</th><th>TOTAL CONVERSION</th></tr></thead>'
+        # <th>TOTAL SYNERGIC ORDER</th>
+
+        # Table body
+        html_table += '<tbody>'
+
+        current_head = ""
+
+        for i, (index, row) in enumerate(Final_df.iterrows()):
+            business_head, store_name = index
+            if store_name == 'Total':
+                continue  # Skip the existing Total row from the DataFrame
+            html_table += '<tr>'
+
+            # Display BUSINESS HEAD only on the first occurrence
+            if business_head != current_head:
+                current_head = business_head
+                rowspan_count = (Final_df.index.get_level_values('BUSINESS HEAD') == current_head).sum()
+                html_table += f'<td rowspan="{rowspan_count}"><b>{current_head}</b></td>'
+
+            # Display STORE NAME, TOTAL WALK-IN, TOTAL CONVERSION, TOTAL SYNERGIC ORDER
+            html_table += f'<td>{store_name}</td>'
+
+            # Highlight rows based on Condition
+
+            walk_in = int(row['TOTAL WALK-IN']) if str(row['TOTAL WALK-IN']).isdigit() else 0
+            conversion = int(row['TOTAL CONVERSION']) if str(row['TOTAL CONVERSION']).isdigit() else 0
+            # synergic_order = int(row['TOTAL SYNERGIC ORDER']) if str(row['TOTAL SYNERGIC ORDER']).isdigit() else None  # None if empty
+
+
+            if walk_in == 0 and conversion == 0:
+                # Both TOTAL WALK-IN and TOTAL CONVERSION are 0 → Light Red
+                html_table += f'<td style="background-color: #F5B7B1; border: 1px solid black;">{walk_in}</td>'
+                html_table += f'<td style="background-color: #F5B7B1; border: 1px solid black;">{conversion}</td>'
+                # html_table += f'<td style="border: 1px solid black;">{synergic_order if synergic_order is not None else ""}</td>'
+
+            # elif conversion != synergic_order and synergic_order is not None:
+                # If TOTAL CONVERSION and TOTAL SYNERGIC ORDER are different → Highlight both in orange
+                # html_table += f'<td style="border: 1px solid black;">{walk_in}</td>'
+                # html_table += f'<td style="background-color: #FFD3A5; border: 1px solid black;">{conversion}</td>'
+                # html_table += f'<td style="background-color: #FFD3A5; border: 1px solid black;">{synergic_order}</td>'
+
+            else:
+                # Default case, no color
+                html_table += f'<td style="border: 1px solid black;">{walk_in}</td>'
+                html_table += f'<td style="border: 1px solid black;">{conversion}</td>'
+                # html_table += f'<td style="border: 1px solid black;">{synergic_order if synergic_order is not None else ""}</td>'
+
+            html_table += '</tr>'
+
+
+        # Add Total Row in Bold
+        total_row = Final_df.iloc[-1]
+        html_table += f'<tr><td colspan="2" style="font-weight: bold;">Total</td>'
+        html_table += f'<td style="font-weight: bold;">{total_row["TOTAL WALK-IN"]}</td>'
+        html_table += f'<td style="font-weight: bold;">{total_row["TOTAL CONVERSION"]}</td>'
+        # html_table += f'<td style="font-weight: bold;">{total_row["TOTAL SYNERGIC ORDER"]}</td></tr>'
+
+        html_table += '</tbody></table>'
+
+        html_part2 = f"""
+        <html>
+        <head>
+            <style>
+                .container 
+                table {{
+                    width: 80%;
+                    border-collapse: collapse;
+                    font-family: Arial, sans-serif;
+                    font-size: 12px;
+                    text-align: center;
+                }}
+                th, td {{
+                    border: 1px solid black;
+                    padding: 5px;
+                }}
+                th {{
+                    background-color: #f4f4f4;
+                }}
+                .legend-container {{
+                    margin-top: 10px;
+                    font-size: 12px;
+                    font-family: Arial, sans-serif;
+                }}
+                .legend-item {{
+                    display: flex;
+                    align-items: center;
+                    margin-bottom: 5px;
+                }}
+                .color-box {{
+                    width: 15px;
+                    height: 15px;
+                    display: inline-block;
+                    margin-right: 10px;
+                }}
+            </style>
+        </head>
+        <body>
+            <h4>Please find below the walk-in and conversion data for all Candere stores on {yesterday}</h4>
+            <div class="legend-container">
+                <div class="legend-item">
+                    <span class="color-box" style="background-color: #F5B7B1;"></span>
+                    <span>No Walk-Ins or Conversions (Both Total Walk-In & Total Conversion are 0)</span>
+                </div>
+            </div>
+            <h4> </h4>
+            <div class="container">{html_table}</div>
+            <h4>Note: The data provided above reflects the information entered by the store team in the walk-in software. Discrepancies may occur if the data is not updated accurately.</h4>
+            <h4>Regards,<br>Candere Team</h4>
+        </body>
+        </html>
+        """
+
+        # {{
+        #             width: 60%;
+        #             padding: 5px;
+        #             border: 1px solid black;
+        #         }}
+
+        msg.attach(MIMEText(html_part2, 'html'))
+
+
+        try:
+            server = smtplib.SMTP('smtp.gmail.com', 587)
+            server.ehlo()
+            server.starttls()
+            server.ehlo()
+            server.login('data.integration@candere.com', 'jmjk nlve dbaa qkhq')
+            server.sendmail(sender_email, recipients, msg.as_string())
+            server.close()
+            print("Success: Email Sent!!!")
+            print('Mail sent to', recipients)
+        except Exception as e:
+            print(e)
+    except Exception as een:
+        print("Error1:", een)
