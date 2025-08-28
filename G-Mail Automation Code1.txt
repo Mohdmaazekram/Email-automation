@@ -140,4 +140,5 @@ def hello_pubsub(event, context):
         except Exception as e:
             print("Error:", e)
     except Exception as een:
+
         print("Error1:", een)
